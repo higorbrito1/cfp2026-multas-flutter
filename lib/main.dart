@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 const remoteDatabaseUrl =
-    'https://raw.githubusercontent.com/higorbrito1/cfp2026/main/flutter_app/assets/data/ctb-mbft.json';
+    'https://raw.githubusercontent.com/higorbrito1/cfp2026-multas-flutter/main/assets/data/ctb-mbft.json';
 const tacticalGreen = Color(0xff0d3823);
 const tacticalPetrol = Color(0xff0f3846);
 const canvas = Color(0xfff4f6f5);
