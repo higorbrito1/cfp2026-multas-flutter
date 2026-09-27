@@ -52,13 +52,13 @@ class CfpMultasApp extends StatelessWidget {
             fillColor: darkSurface,
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: tacticalGreen, width: 1.5)),
+                borderSide: const BorderSide(color: darkAccent, width: 1.5)),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: border, width: 1.5)),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: tacticalGreen, width: 2)),
+                borderSide: const BorderSide(color: darkAccent, width: 2)),
           ),
         ),
         home: const FineShell(),
@@ -158,12 +158,6 @@ class _FineShellState extends State<FineShell> {
   void _showMessage(String message) => ScaffoldMessenger.of(context)
       .showSnackBar(SnackBar(content: Text(message)));
 
-  void _openSearch([String initialQuery = '']) => setState(() {
-        selectedTab = 1;
-        query = initialQuery;
-        searchController.text = initialQuery;
-      });
-
   List<FineRecord> get filteredRecords {
     final tokens =
         normalize(query).split(' ').where((token) => token.isNotEmpty).toList();
@@ -199,14 +193,6 @@ class _FineShellState extends State<FineShell> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final pages = [
-      HomeView(
-        records: records,
-        databaseVersion: databaseVersion,
-        updating: updating,
-        favoriteCount: favorites.length,
-        onSearch: _openSearch,
-        onUpdate: _updateDatabase,
-      ),
       ConsultationView(
           controller: searchController,
           query: query,
@@ -235,10 +221,6 @@ class _FineShellState extends State<FineShell> {
         backgroundColor: darkSurface,
         indicatorColor: const Color(0xff3a4040),
         destinations: const [
-          NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Início'),
           NavigationDestination(icon: Icon(Icons.search), label: 'Consultar'),
           NavigationDestination(
               icon: Icon(Icons.bookmark_border),
@@ -335,7 +317,7 @@ class HomeView extends StatelessWidget {
                 onTap: () => onSearch(''),
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.search),
-                  hintText: 'Digite código (ex.: 501-00)',
+                  hintText: 'Pesquisar infração...',
                   suffixIcon: Icon(Icons.dialpad),
                 ),
               ),
@@ -392,14 +374,14 @@ class HomeView extends StatelessWidget {
       decoration: BoxDecoration(
           color: darkSurface,
           border: const Border(
-              left: BorderSide(color: tacticalGreen, width: 7),
+              left: BorderSide(color: darkAccent, width: 7),
               top: BorderSide(color: border),
               right: BorderSide(color: border),
               bottom: BorderSide(color: border)),
           borderRadius: BorderRadius.circular(8)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Row(children: [
-          Icon(Icons.check_circle, color: tacticalGreen),
+          Icon(Icons.check_circle, color: darkAccent),
           SizedBox(width: 8),
           Text('Base CTB & MBFT pronta',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800))
@@ -437,7 +419,7 @@ class HomeView extends StatelessWidget {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(icon, color: tacticalGreen),
+                        Icon(icon, color: darkAccent),
                         const SizedBox(height: 10),
                         Text(title,
                             style:
@@ -483,7 +465,7 @@ class ConsultationView extends StatelessWidget {
             onChanged: onQuery,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
-              hintText: 'Código, artigo ou descrição',
+              hintText: 'Pesquisar infração...',
               suffixIcon: query.isEmpty
                   ? const Icon(Icons.mic_none)
                   : IconButton(
@@ -507,6 +489,14 @@ class ConsultationView extends StatelessWidget {
                       child: ChoiceChip(
                         label: Text(filter),
                         selected: severityFilter == filter,
+                        backgroundColor: darkSurfaceAlt,
+                        selectedColor: filterColor(filter),
+                        side: BorderSide(color: filterColor(filter)),
+                        labelStyle: TextStyle(
+                            color: severityFilter == filter
+                                ? Colors.white
+                                : darkTextMuted,
+                            fontWeight: FontWeight.w700),
                         onSelected: (_) => onFilter(filter),
                       ),
                     ))
@@ -581,7 +571,7 @@ class FineCard extends StatelessWidget {
                               style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w900,
-                                  color: tacticalGreen))),
+                                  color: darkAccent))),
                       const SizedBox(width: 8),
                       Expanded(
                           child: Container(
@@ -647,8 +637,7 @@ class FineCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       const Text('DETALHES ›',
                           style: TextStyle(
-                              color: tacticalGreen,
-                              fontWeight: FontWeight.w800))
+                              color: darkAccent, fontWeight: FontWeight.w800))
                     ])
                   ]))));
 }
@@ -676,6 +665,11 @@ Color severityColor(String severity) {
     default:
       return const Color(0xff0e7490);
   }
+}
+
+Color filterColor(String filter) {
+  if (filter == 'Todas') return const Color(0xff667070);
+  return severityColor(filter);
 }
 
 class FavoritesView extends StatelessWidget {
@@ -731,10 +725,33 @@ class MoreView extends StatelessWidget {
                       ? const CircularProgressIndicator()
                       : const Icon(Icons.chevron_right),
                   onTap: updating ? null : onUpdate)),
-          const SizedBox(height: 32),
-          const Center(
-              child: Text('Feito por Higor Brito',
-                  style: TextStyle(color: darkTextMuted, fontSize: 12)))
+          const SizedBox(height: 28),
+          Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              decoration: BoxDecoration(
+                  color: darkSurfaceAlt,
+                  border: Border.all(color: border),
+                  borderRadius: BorderRadius.circular(8)),
+              child: const Row(children: [
+                Icon(Icons.shield_outlined, color: darkAccent, size: 30),
+                SizedBox(width: 14),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Feito por',
+                      style: TextStyle(
+                          color: darkTextMuted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600)),
+                  SizedBox(height: 2),
+                  Text('Higor Brito',
+                      style: TextStyle(
+                          color: darkAccent,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900)),
+                  SizedBox(height: 2),
+                  Text('Consulta CTB/MBFT',
+                      style: TextStyle(color: darkTextMuted, fontSize: 12))
+                ])
+              ]))
         ]))
       ]);
 }
@@ -778,7 +795,7 @@ class _FineDetailsDialogState extends State<FineDetailsDialog> {
                   widget.onFavorite();
                 },
                 icon: Icon(favorite ? Icons.bookmark : Icons.bookmark_border,
-                    color: tacticalGreen))
+                    color: darkAccent))
           ]),
           content: SingleChildScrollView(
               child: Column(
@@ -831,22 +848,9 @@ class _FineDetailsDialogState extends State<FineDetailsDialog> {
                   ['Definições e procedimentos', 'procedures'],
                   ['Exemplos para observações do AIT', 'examples'],
                   ['Informações complementares', 'additional']
-                ].where((item) => widget.fine.value(item[1]).isNotEmpty).map(
-                    (item) => ExpansionTile(
-                            title: Text(item[0],
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w800)),
-                            tilePadding: EdgeInsets.zero,
-                            children: [
-                              Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 12),
-                                      child: Text(widget.fine.value(item[1]),
-                                          style:
-                                              const TextStyle(height: 1.35))))
-                            ]))
+                ]
+                    .where((item) => widget.fine.value(item[1]).isNotEmpty)
+                    .map((item) => _section(item[0], item[1]))
               ])),
           actions: [
             OutlinedButton.icon(
@@ -867,6 +871,63 @@ class _FineDetailsDialogState extends State<FineDetailsDialog> {
                 icon: const Icon(Icons.copy),
                 label: const Text('Copiar'))
           ]);
+  Widget _section(String title, String key) => ExpansionTile(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+        tilePadding: EdgeInsets.zero,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              children: _items(widget.fine.value(key))
+                  .asMap()
+                  .entries
+                  .map((entry) => Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            color: darkSurface,
+                            border: Border.all(color: border),
+                            borderRadius: BorderRadius.circular(5)),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(
+                                  color: darkSurfaceAlt,
+                                  shape: BoxShape.circle),
+                              child: Text('${entry.key + 1}',
+                                  style: const TextStyle(
+                                      color: darkAccent,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12)),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                child: Text(entry.value,
+                                    style: const TextStyle(height: 1.35)))
+                          ],
+                        ),
+                      ))
+                  .toList(),
+            ),
+          )
+        ],
+      );
+
+  List<String> _items(String value) {
+    final separated =
+        value.replaceAllMapped(RegExp(r'\s+(?=\d+\.\s)'), (_) => '\n');
+    return separated
+        .split('\n')
+        .map((item) => item.trim().replaceFirst(RegExp(r'^\d+\.\s*'), ''))
+        .where((item) => item.isNotEmpty)
+        .toList();
+  }
+
   Widget _field(String label, String value) => Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
