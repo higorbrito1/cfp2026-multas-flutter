@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "baseVersion": "mbft-2022",
+  "baseUpdatedAt": "2026-09-27",
+  "lastOfficialCheck": "2026-09-27",
+  "officialSources": [
+    {
+      "name": "Resoluções do CONTRAN",
+      "kind": "Resoluções em vigor e alterações",
+      "url": "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-Senatran/resolucoes-contran"
+    },
+    {
+      "name": "Deliberações e portarias do CONTRAN",
+      "kind": "Deliberações e portarias",
+      "url": "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/deliberacoes-contran"
+    },
+    {
+      "name": "Conteúdo oficial da SENATRAN",
+      "kind": "Legislação, portarias e publicações",
+      "url": "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-Senatran"
+    },
+    {
+      "name": "MBFT oficial",
+      "kind": "Manual Brasileiro de Fiscalização de Trânsito",
+      "url": "https://www.gov.br/infraestrutura/pt-br/assuntos/transito/conteudo-contran/resolucoes/mbvt20222.pdf"
+    }
+  ]
+}

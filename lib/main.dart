@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const remoteDatabaseUrl =
     'https://raw.githubusercontent.com/higorbrito1/cfp2026-multas-flutter/main/assets/data/ctb-mbft.json';
+const remoteMetadataUrl =
+    'https://raw.githubusercontent.com/higorbrito1/cfp2026-multas-flutter/main/assets/data/database-metadata.json';
 const appName = 'Consulta CTB/MBFT';
 const tacticalGreen = Color(0xff111414);
 const tacticalPetrol = Color(0xffd7dddd);
@@ -78,6 +80,7 @@ class _FineShellState extends State<FineShell> {
   String query = '';
   String severityFilter = 'Todas';
   String databaseVersion = 'Base incluída no app';
+  Map<String, dynamic> databaseMetadata = {};
   int selectedTab = 0;
   bool loading = true;
   bool updating = false;
@@ -101,14 +104,19 @@ class _FineShellState extends State<FineShell> {
   Future<void> _loadDatabase() async {
     final preferences = await SharedPreferences.getInstance();
     final saved = preferences.getString('ctb_mbft_database');
+    final savedMetadata = preferences.getString('ctb_mbft_metadata');
     final raw =
         saved ?? await rootBundle.loadString('assets/data/ctb-mbft.json');
+    final metadataRaw = savedMetadata ??
+        await rootBundle.loadString('assets/data/database-metadata.json');
     final decoded = _decodeRecords(raw);
+    final metadata = Map<String, dynamic>.from(jsonDecode(metadataRaw) as Map);
     if (!mounted) return;
     setState(() {
       records = decoded;
+      databaseMetadata = metadata;
       databaseVersion = preferences.getString('ctb_mbft_version') ??
-          (saved == null ? 'Base incluída no app' : 'Base atualizada');
+          'Base ${metadata['baseVersion'] ?? (saved == null ? 'incluída no app' : 'atualizada')}';
       favorites =
           (preferences.getStringList('ctb_mbft_favorites') ?? []).toSet();
       loading = false;
@@ -125,12 +133,21 @@ class _FineShellState extends State<FineShell> {
       final decoded = _decodeRecords(response.body);
       final preferences = await SharedPreferences.getInstance();
       await preferences.setString('ctb_mbft_database', response.body);
+      Map<String, dynamic> metadata = databaseMetadata;
+      final metadataResponse = await http.get(Uri.parse(remoteMetadataUrl));
+      if (metadataResponse.statusCode == 200) {
+        metadata =
+            Map<String, dynamic>.from(jsonDecode(metadataResponse.body) as Map);
+        await preferences.setString('ctb_mbft_metadata', metadataResponse.body);
+      }
+      final officialCheck = metadata['lastOfficialCheck'] ?? 'não informada';
       final stamp =
-          'Atualizada em ${DateTime.now().toLocal().toString().substring(0, 16)}';
+          'Base ${metadata['baseVersion'] ?? 'atualizada'} • fontes verificadas em $officialCheck';
       await preferences.setString('ctb_mbft_version', stamp);
       if (!mounted) return;
       setState(() {
         records = decoded;
+        databaseMetadata = metadata;
         databaseVersion = stamp;
       });
       _showMessage('Base atualizada com ${decoded.length} fichas.');
@@ -210,6 +227,7 @@ class _FineShellState extends State<FineShell> {
           onFavorite: _toggleFavorite),
       MoreView(
           databaseVersion: databaseVersion,
+          metadata: databaseMetadata,
           updating: updating,
           onUpdate: _updateDatabase),
     ];
@@ -704,10 +722,12 @@ class FavoritesView extends StatelessWidget {
 class MoreView extends StatelessWidget {
   const MoreView(
       {required this.databaseVersion,
+      required this.metadata,
       required this.updating,
       required this.onUpdate,
       super.key});
   final String databaseVersion;
+  final Map<String, dynamic> metadata;
   final bool updating;
   final VoidCallback onUpdate;
   @override
@@ -725,6 +745,8 @@ class MoreView extends StatelessWidget {
                       ? const CircularProgressIndicator()
                       : const Icon(Icons.chevron_right),
                   onTap: updating ? null : onUpdate)),
+          const SizedBox(height: 14),
+          _OfficialSourcesCard(metadata: metadata),
           const SizedBox(height: 28),
           Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
@@ -754,6 +776,39 @@ class MoreView extends StatelessWidget {
               ]))
         ]))
       ]);
+}
+
+class _OfficialSourcesCard extends StatelessWidget {
+  const _OfficialSourcesCard({required this.metadata});
+  final Map<String, dynamic> metadata;
+
+  @override
+  Widget build(BuildContext context) {
+    final sources = (metadata['officialSources'] as List? ?? [])
+        .whereType<Map>()
+        .map((source) => Map<String, dynamic>.from(source))
+        .toList();
+    return Card(
+        child: ExpansionTile(
+            leading: const Icon(Icons.verified_outlined, color: darkAccent),
+            title: const Text('Fontes oficiais',
+                style: TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: Text(
+                'Verificadas em ${metadata['lastOfficialCheck'] ?? 'não informada'}'),
+            children: sources.isEmpty
+                ? const [
+                    ListTile(title: Text('Nenhuma fonte sincronizada ainda.'))
+                  ]
+                : sources
+                    .map((source) => ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.link,
+                              color: darkTextMuted, size: 20),
+                          title: Text('${source['name'] ?? 'Fonte oficial'}'),
+                          subtitle: Text('${source['kind'] ?? ''}'),
+                        ))
+                    .toList()));
+  }
 }
 
 class FineDetailsDialog extends StatefulWidget {
