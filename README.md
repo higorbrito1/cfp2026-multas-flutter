@@ -1,6 +1,15 @@
-# cfp2026_multas
+# Consulta CTB/MBFT CFP 26/27
 
-A new Flutter project.
+Aplicativo Flutter offline para consulta rápida de infrações do CTB e MBFT.
+
+## Recursos
+
+- Pesquisa por código, artigo, descrição e campos da ficha.
+- Detalhamento completo com seções retráteis.
+- Favoritos persistentes com indicação visual e confirmação ao salvar.
+- Atualização da base quando houver internet, mantendo uso offline.
+- Checklist operacional de abordagem.
+- Interface em modo escuro para uso em campo.
 
 ## Getting Started
 

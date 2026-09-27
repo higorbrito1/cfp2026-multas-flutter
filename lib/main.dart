@@ -7,10 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const remoteDatabaseUrl =
     'https://raw.githubusercontent.com/higorbrito1/cfp2026-multas-flutter/main/assets/data/ctb-mbft.json';
+const appName = 'Consulta CTB/MBFT CFP 26/27';
 const tacticalGreen = Color(0xff0d3823);
 const tacticalPetrol = Color(0xff0f3846);
-const canvas = Color(0xfff4f6f5);
-const border = Color(0xffcbd5d1);
+const canvas = Color(0xff101713);
+const darkSurface = Color(0xff17231c);
+const darkSurfaceAlt = Color(0xff203128);
+const darkTextMuted = Color(0xffb5c6ba);
+const darkAccent = Color(0xff9bd6b2);
+const border = Color(0xff496354);
 
 void main() => runApp(const CfpMultasApp());
 
@@ -31,10 +36,12 @@ class CfpMultasApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'CFP 2026 · CTB/MBFT',
+        title: appName,
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: tacticalGreen),
+          brightness: Brightness.dark,
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: tacticalGreen, brightness: Brightness.dark),
           scaffoldBackgroundColor: canvas,
           appBarTheme: const AppBarTheme(
               backgroundColor: tacticalGreen,
@@ -42,7 +49,7 @@ class CfpMultasApp extends StatelessWidget {
               elevation: 0),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: darkSurface,
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: tacticalGreen, width: 1.5)),
@@ -138,11 +145,15 @@ class _FineShellState extends State<FineShell> {
   }
 
   Future<void> _toggleFavorite(FineRecord fine) async {
+    final wasFavorite = favorites.contains(fine.id);
     setState(() => favorites.contains(fine.id)
         ? favorites.remove(fine.id)
         : favorites.add(fine.id));
     final preferences = await SharedPreferences.getInstance();
     await preferences.setStringList('ctb_mbft_favorites', favorites.toList());
+    _showMessage(wasFavorite
+        ? 'Infração removida dos favoritos.'
+        : 'Infração adicionada aos favoritos.');
   }
 
   void _showMessage(String message) => ScaffoldMessenger.of(context)
@@ -226,8 +237,8 @@ class _FineShellState extends State<FineShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedTab,
         onDestinationSelected: (index) => setState(() => selectedTab = index),
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xffbff0ce),
+        backgroundColor: darkSurface,
+        indicatorColor: const Color(0xff245c3a),
         destinations: const [
           NavigationDestination(
               icon: Icon(Icons.home_outlined),
@@ -250,33 +261,47 @@ class TacticalHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    return Container(
       color: tacticalGreen,
       padding: const EdgeInsets.fromLTRB(20, 42, 20, 16),
-      child: Row(children: [
-        Container(
+      child: Row(
+        children: [
+          Container(
             padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xff3e674e)),
-                borderRadius: BorderRadius.circular(5)),
-            child: const Icon(Icons.shield_outlined,
-                color: Color(0xffbff0ce), size: 28)),
-        const SizedBox(width: 12),
-        Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 21,
-                  fontWeight: FontWeight.w800)),
-          if (subtitle != null)
-            Text(subtitle!,
-                style: const TextStyle(
-                    color: Color(0xffa9d5b6), fontWeight: FontWeight.w600))
-        ])),
-        const Icon(Icons.cloud_done, color: Color(0xffbff0ce))
-      ]));
+              border: Border.all(color: const Color(0xff3e674e)),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Image.asset('assets/icon/app_icon.png',
+                  width: 28, height: 28, fit: BoxFit.cover),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 21,
+                        fontWeight: FontWeight.w800)),
+                if (subtitle != null)
+                  Text(subtitle!,
+                      style: const TextStyle(
+                          color: Color(0xffa9d5b6),
+                          fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          const Icon(Icons.cloud_done, color: Color(0xffbff0ce)),
+        ],
+      ),
+    );
+  }
 }
 
 class HomeView extends StatelessWidget {
@@ -298,100 +323,101 @@ class HomeView extends StatelessWidget {
   final VoidCallback onChecklist;
 
   @override
-  Widget build(BuildContext context) => CustomScrollView(slivers: [
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
         const SliverToBoxAdapter(
-            child: TacticalHeader(
-                title: 'CFP 2026 · CTB/MBFT',
-                subtitle: 'POLICIAMENTO E FISCALIZAÇÃO')),
+          child: TacticalHeader(
+            title: appName,
+            subtitle: 'CONSULTA OFFLINE DE LEGISLAÇÃO DE TRÂNSITO',
+          ),
+        ),
         SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-                delegate: SliverChildListDelegate([
-              _unitBanner(),
-              const SizedBox(height: 14),
+          padding: const EdgeInsets.all(16),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
               _databaseCard(),
               const SizedBox(height: 14),
               TextField(
-                  readOnly: true,
-                  onTap: () => onSearch(''),
-                  decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      hintText: 'Digite código (ex.: 501-00)',
-                      suffixIcon: Icon(Icons.dialpad))),
+                readOnly: true,
+                onTap: () => onSearch(''),
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Digite código (ex.: 501-00)',
+                  suffixIcon: Icon(Icons.dialpad),
+                ),
+              ),
               const SizedBox(height: 14),
               InkWell(
-                  onTap: () => onSearch(''),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                          color: tacticalGreen,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: const Color(0xff001e10), width: 2)),
-                      child: const Row(children: [
-                        Icon(Icons.manage_search,
-                            color: Color(0xffbff0ce), size: 38),
-                        SizedBox(width: 14),
-                        Expanded(
-                            child: Text('CONSULTAR\nINFRAÇÕES',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
-                                    height: .95))),
-                        Icon(Icons.arrow_forward, color: Colors.white, size: 34)
-                      ]))),
+                onTap: () => onSearch(''),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: tacticalGreen,
+                    borderRadius: BorderRadius.circular(8),
+                    border:
+                        Border.all(color: const Color(0xff001e10), width: 2),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.manage_search,
+                          color: Color(0xffbff0ce), size: 38),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          'CONSULTAR\nINFRAÇÕES',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              height: .95),
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward, color: Colors.white, size: 34),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
-              const Text('ATALHOS OPERACIONAIS RÁPIDOS',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xff414943),
-                      fontSize: 16)),
+              const Text(
+                'ATALHOS OPERACIONAIS RÁPIDOS',
+                style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: darkTextMuted,
+                    fontSize: 16),
+              ),
               const SizedBox(height: 8),
-              Row(children: [
-                Expanded(
-                    child: _shortcut(
-                        Icons.bookmark, 'Favoritos', '$favoriteCount salvas')),
-                const SizedBox(width: 10),
-                Expanded(
-                    child: _shortcut(Icons.checklist, 'Checklist', 'Roteiro',
-                        onTap: onChecklist))
-              ]),
+              Row(
+                children: [
+                  Expanded(
+                      child: _shortcut(Icons.bookmark, 'Favoritos',
+                          '$favoriteCount salvas')),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: _shortcut(Icons.checklist, 'Checklist', 'Roteiro',
+                          onTap: onChecklist)),
+                ],
+              ),
               const SizedBox(height: 10),
-              Row(children: [
-                Expanded(
-                    child: _shortcut(Icons.history, 'Histórico', 'Consultas')),
-                const SizedBox(width: 10),
-                Expanded(
-                    child: _shortcut(Icons.local_police, 'Medidas adm.',
-                        'Retenção / Remoção'))
-              ]),
-              const SizedBox(height: 18),
-              _severityTable(records.length)
-            ])))
-      ]);
+              Row(
+                children: [
+                  Expanded(
+                      child: _shortcut(Icons.local_police, 'Medidas adm.',
+                          'Retenção / Remoção')),
+                ],
+              ),
+            ]),
+          ),
+        ),
+      ],
+    );
+  }
 
-  Widget _unitBanner() => Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: border),
-          borderRadius: BorderRadius.circular(6)),
-      child: const Row(children: [
-        Icon(Icons.circle, color: Color(0xff6cc9a0), size: 14),
-        SizedBox(width: 10),
-        Expanded(
-            child: Text('VTR TÁTICA 04 • 1º BPTran',
-                style: TextStyle(fontWeight: FontWeight.w700))),
-        Text('MODO: BLITZ / RODOVIA',
-            style:
-                TextStyle(color: tacticalPetrol, fontWeight: FontWeight.w800))
-      ]));
   Widget _databaseCard() => Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: darkSurface,
           border: const Border(
               left: BorderSide(color: tacticalGreen, width: 7),
               top: BorderSide(color: border),
@@ -410,7 +436,7 @@ class HomeView extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.w600)),
         Text('${records.length} infrações disponíveis offline',
             style: const TextStyle(
-                color: tacticalPetrol, fontWeight: FontWeight.w700)),
+                color: darkAccent, fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
         OutlinedButton.icon(
             onPressed: updating ? null : onUpdate,
@@ -423,8 +449,8 @@ class HomeView extends StatelessWidget {
             label: Text(updating ? 'ATUALIZANDO...' : 'ATUALIZAR BASE'),
             style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
-                foregroundColor: tacticalPetrol,
-                side: const BorderSide(color: tacticalPetrol, width: 1.5)))
+                foregroundColor: darkAccent,
+                side: const BorderSide(color: darkAccent, width: 1.5)))
       ]));
   Widget _shortcut(IconData icon, String title, String subtitle,
           {VoidCallback? onTap}) =>
@@ -444,56 +470,8 @@ class HomeView extends StatelessWidget {
                             style:
                                 const TextStyle(fontWeight: FontWeight.w800)),
                         Text(subtitle,
-                            style: const TextStyle(color: Colors.black54))
+                            style: const TextStyle(color: darkTextMuted))
                       ]))));
-  Widget _severityTable(int count) => Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: border),
-          borderRadius: BorderRadius.circular(8)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Row(children: [
-          Text('TABELA RÁPIDA DE GRAVIDADES',
-              style: TextStyle(fontWeight: FontWeight.w800)),
-          Spacer(),
-          Text('CTB Art. 258',
-              style:
-                  TextStyle(color: Colors.black54, fontWeight: FontWeight.w700))
-        ]),
-        const SizedBox(height: 10),
-        Row(children: [
-          _severity('GRAVÍSSIMA', '7 Pts', const Color(0xff991b1b)),
-          const SizedBox(width: 10),
-          _severity('GRAVE', '5 Pts', const Color(0xffc2410c))
-        ]),
-        const SizedBox(height: 10),
-        Row(children: [
-          _severity('MÉDIA', '4 Pts', const Color(0xffb45309)),
-          const SizedBox(width: 10),
-          _severity('LEVE', '3 Pts', const Color(0xff0e7490))
-        ]),
-        const SizedBox(height: 8),
-        Text('$count fichas oficiais no banco local',
-            style: const TextStyle(color: Colors.black54, fontSize: 12))
-      ]));
-  Widget _severity(String label, String points, Color color) => Expanded(
-      child: Container(
-          padding: const EdgeInsets.all(10),
-          color: const Color(0xfff0fdf1),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                color: color,
-                child: Text(label,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12))),
-            const SizedBox(height: 5),
-            Text(points, style: const TextStyle(fontWeight: FontWeight.w800))
-          ])));
 }
 
 class ConsultationView extends StatelessWidget {
@@ -523,8 +501,7 @@ class ConsultationView extends StatelessWidget {
     return Column(
       children: [
         const TacticalHeader(
-            title: 'CFP 2026 · CTB/MBFT',
-            subtitle: 'Consulta de infrações e enquadramentos'),
+            title: appName, subtitle: 'Consulta de infrações e enquadramentos'),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
           child: TextField(
@@ -571,7 +548,7 @@ class ConsultationView extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w700)),
               const Spacer(),
               const Text('Ordenar: Código',
-                  style: TextStyle(color: Colors.black54)),
+                  style: TextStyle(color: darkTextMuted)),
             ],
           ),
         ),
@@ -626,7 +603,7 @@ class FineCard extends StatelessWidget {
                       Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 6),
-                          color: const Color(0xffe4f1e6),
+                          color: darkSurfaceAlt,
                           child: Text(fine.id,
                               style: const TextStyle(
                                   fontSize: 18,
@@ -637,7 +614,7 @@ class FineCard extends StatelessWidget {
                           child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 6),
-                              color: const Color(0xffe4f1e6),
+                              color: darkSurfaceAlt,
                               child: Text(fine.article,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w700)))),
@@ -645,10 +622,22 @@ class FineCard extends StatelessWidget {
                           onPressed: onFavorite,
                           icon: Icon(
                               favorite ? Icons.bookmark : Icons.bookmark_border,
-                              color: favorite ? tacticalGreen : Colors.black54))
+                              color: favorite ? darkAccent : darkTextMuted))
                     ]),
                     const SizedBox(height: 6),
                     SeverityBadge(fine.severity),
+                    if (favorite)
+                      const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Row(children: [
+                            Icon(Icons.bookmark, size: 17, color: darkAccent),
+                            SizedBox(width: 5),
+                            Text('ADICIONADA AOS FAVORITOS',
+                                style: TextStyle(
+                                    color: darkAccent,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 11))
+                          ])),
                     const SizedBox(height: 10),
                     Text(fine.title,
                         style: const TextStyle(
@@ -659,7 +648,7 @@ class FineCard extends StatelessWidget {
                     Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(11),
-                        color: const Color(0xfff0fdf1),
+                        color: darkSurfaceAlt,
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -677,7 +666,7 @@ class FineCard extends StatelessWidget {
                       Expanded(
                           child: Text(fine.value('competence'),
                               style: const TextStyle(
-                                  color: tacticalPetrol,
+                                  color: darkAccent,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 12),
                               maxLines: 2,
@@ -795,7 +784,7 @@ class MoreView extends StatelessWidget {
       ]);
 }
 
-class FineDetailsDialog extends StatelessWidget {
+class FineDetailsDialog extends StatefulWidget {
   const FineDetailsDialog(
       {required this.fine,
       required this.favorite,
@@ -804,6 +793,20 @@ class FineDetailsDialog extends StatelessWidget {
   final FineRecord fine;
   final bool favorite;
   final VoidCallback onFavorite;
+
+  @override
+  State<FineDetailsDialog> createState() => _FineDetailsDialogState();
+}
+
+class _FineDetailsDialogState extends State<FineDetailsDialog> {
+  late bool favorite;
+
+  @override
+  void initState() {
+    super.initState();
+    favorite = widget.favorite;
+  }
+
   @override
   Widget build(BuildContext context) => AlertDialog(
           insetPadding: const EdgeInsets.all(12),
@@ -811,7 +814,10 @@ class FineDetailsDialog extends StatelessWidget {
           title: Row(children: [
             const Expanded(child: Text('Detalhes do enquadramento')),
             IconButton(
-                onPressed: onFavorite,
+                onPressed: () {
+                  setState(() => favorite = !favorite);
+                  widget.onFavorite();
+                },
                 icon: Icon(favorite ? Icons.bookmark : Icons.bookmark_border,
                     color: tacticalGreen))
           ]),
@@ -823,25 +829,24 @@ class FineDetailsDialog extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                      color: const Color(0xfff0fdf1),
-                      border: Border.all(color: border)),
+                      color: darkSurfaceAlt, border: Border.all(color: border)),
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
-                          Text('CÓDIGO: ${fine.id}',
+                          Text('CÓDIGO: ${widget.fine.id}',
                               style: const TextStyle(
-                                  color: tacticalPetrol,
+                                  color: darkAccent,
                                   fontWeight: FontWeight.w800)),
                           const Spacer(),
-                          SeverityBadge(fine.severity)
+                          SeverityBadge(widget.fine.severity)
                         ]),
                         const SizedBox(height: 10),
-                        Text(fine.article,
+                        Text(widget.fine.article,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 17)),
                         const SizedBox(height: 10),
-                        Text(fine.title,
+                        Text(widget.fine.title,
                             style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
@@ -850,15 +855,15 @@ class FineDetailsDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 ...[
-                  ['Tipificação', fine.title],
-                  ['Gravidade', fine.value('severity')],
-                  ['Pontuação', fine.value('points')],
-                  ['Penalidade', fine.value('penalty')],
-                  ['Medida administrativa', fine.value('measure')],
-                  ['Infrator', fine.value('offender')],
-                  ['Constatação', fine.value('detection')],
-                  ['Crime de trânsito', fine.value('crime')],
-                  ['Competência', fine.value('competence')]
+                  ['Tipificação', widget.fine.title],
+                  ['Gravidade', widget.fine.value('severity')],
+                  ['Pontuação', widget.fine.value('points')],
+                  ['Penalidade', widget.fine.value('penalty')],
+                  ['Medida administrativa', widget.fine.value('measure')],
+                  ['Infrator', widget.fine.value('offender')],
+                  ['Constatação', widget.fine.value('detection')],
+                  ['Crime de trânsito', widget.fine.value('crime')],
+                  ['Competência', widget.fine.value('competence')]
                 ].map((item) => _field(item[0], item[1])),
                 const Divider(),
                 ...[
@@ -867,31 +872,36 @@ class FineDetailsDialog extends StatelessWidget {
                   ['Definições e procedimentos', 'procedures'],
                   ['Exemplos para observações do AIT', 'examples'],
                   ['Informações complementares', 'additional']
-                ].where((item) => fine.value(item[1]).isNotEmpty).map((item) =>
-                    ExpansionTile(
-                        title: Text(item[0],
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w800)),
-                        tilePadding: EdgeInsets.zero,
-                        children: [
-                          Align(
-                              alignment: Alignment.centerLeft,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: Text(fine.value(item[1]),
-                                      style: const TextStyle(height: 1.35))))
-                        ]))
+                ].where((item) => widget.fine.value(item[1]).isNotEmpty).map(
+                    (item) => ExpansionTile(
+                            title: Text(item[0],
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w800)),
+                            tilePadding: EdgeInsets.zero,
+                            children: [
+                              Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
+                                      child: Text(widget.fine.value(item[1]),
+                                          style:
+                                              const TextStyle(height: 1.35))))
+                            ]))
               ])),
           actions: [
             OutlinedButton.icon(
-                onPressed: onFavorite,
+                onPressed: () {
+                  setState(() => favorite = !favorite);
+                  widget.onFavorite();
+                },
                 icon: Icon(favorite ? Icons.bookmark : Icons.bookmark_border),
                 label: Text(favorite ? 'Salvo' : 'Favoritar')),
             FilledButton.icon(
                 onPressed: () {
                   Clipboard.setData(ClipboardData(
                       text:
-                          '${fine.id} - ${fine.title}\n${fine.value('penalty')}\n${fine.value('measure')}'));
+                          '${widget.fine.id} - ${widget.fine.title}\n${widget.fine.value('penalty')}\n${widget.fine.value('measure')}'));
                   ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Informações copiadas.')));
                 },
@@ -903,7 +913,7 @@ class FineDetailsDialog extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label.toUpperCase(),
             style: const TextStyle(
-                color: Colors.black54,
+                color: darkTextMuted,
                 fontSize: 11,
                 fontWeight: FontWeight.w800)),
         Text(value.isEmpty ? 'Não informado na ficha' : value,
