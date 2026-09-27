@@ -7,15 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const remoteDatabaseUrl =
     'https://raw.githubusercontent.com/higorbrito1/cfp2026-multas-flutter/main/assets/data/ctb-mbft.json';
-const appName = 'Consulta CTB/MBFT CFP 26/27';
-const tacticalGreen = Color(0xff0d3823);
-const tacticalPetrol = Color(0xff0f3846);
-const canvas = Color(0xff101713);
-const darkSurface = Color(0xff17231c);
-const darkSurfaceAlt = Color(0xff203128);
-const darkTextMuted = Color(0xffb5c6ba);
-const darkAccent = Color(0xff9bd6b2);
-const border = Color(0xff496354);
+const appName = 'Consulta CTB/MBFT';
+const tacticalGreen = Color(0xff111414);
+const tacticalPetrol = Color(0xffd7dddd);
+const canvas = Color(0xff090b0b);
+const darkSurface = Color(0xff151818);
+const darkSurfaceAlt = Color(0xff202424);
+const darkTextMuted = Color(0xffb9c1c1);
+const darkAccent = Color(0xfff0f3f3);
+const border = Color(0xff414848);
 
 void main() => runApp(const CfpMultasApp());
 
@@ -75,7 +75,6 @@ class _FineShellState extends State<FineShell> {
   final searchController = TextEditingController();
   List<FineRecord> records = [];
   Set<String> favorites = {};
-  Set<String> checklist = {};
   String query = '';
   String severityFilter = 'Todas';
   String databaseVersion = 'Base incluída no app';
@@ -201,13 +200,13 @@ class _FineShellState extends State<FineShell> {
     }
     final pages = [
       HomeView(
-          records: records,
-          databaseVersion: databaseVersion,
-          updating: updating,
-          favoriteCount: favorites.length,
-          onSearch: _openSearch,
-          onUpdate: _updateDatabase,
-          onChecklist: () => setState(() => selectedTab = 3)),
+        records: records,
+        databaseVersion: databaseVersion,
+        updating: updating,
+        favoriteCount: favorites.length,
+        onSearch: _openSearch,
+        onUpdate: _updateDatabase,
+      ),
       ConsultationView(
           controller: searchController,
           query: query,
@@ -226,11 +225,7 @@ class _FineShellState extends State<FineShell> {
       MoreView(
           databaseVersion: databaseVersion,
           updating: updating,
-          checklist: checklist,
-          onUpdate: _updateDatabase,
-          onChecklistItem: (item) => setState(() => checklist.contains(item)
-              ? checklist.remove(item)
-              : checklist.add(item))),
+          onUpdate: _updateDatabase),
     ];
     return Scaffold(
       body: SafeArea(top: false, child: pages[selectedTab]),
@@ -238,7 +233,7 @@ class _FineShellState extends State<FineShell> {
         selectedIndex: selectedTab,
         onDestinationSelected: (index) => setState(() => selectedTab = index),
         backgroundColor: darkSurface,
-        indicatorColor: const Color(0xff245c3a),
+        indicatorColor: const Color(0xff3a4040),
         destinations: const [
           NavigationDestination(
               icon: Icon(Icons.home_outlined),
@@ -270,7 +265,7 @@ class TacticalHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xff3e674e)),
+              border: Border.all(color: border),
               borderRadius: BorderRadius.circular(5),
             ),
             child: ClipRRect(
@@ -292,12 +287,11 @@ class TacticalHeader extends StatelessWidget {
                 if (subtitle != null)
                   Text(subtitle!,
                       style: const TextStyle(
-                          color: Color(0xffa9d5b6),
-                          fontWeight: FontWeight.w600)),
+                          color: darkTextMuted, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
-          const Icon(Icons.cloud_done, color: Color(0xffbff0ce)),
+          const Icon(Icons.cloud_done, color: darkAccent),
         ],
       ),
     );
@@ -312,7 +306,6 @@ class HomeView extends StatelessWidget {
       required this.favoriteCount,
       required this.onSearch,
       required this.onUpdate,
-      required this.onChecklist,
       super.key});
   final List<FineRecord> records;
   final String databaseVersion;
@@ -320,7 +313,6 @@ class HomeView extends StatelessWidget {
   final int favoriteCount;
   final ValueChanged<String> onSearch;
   final VoidCallback onUpdate;
-  final VoidCallback onChecklist;
 
   @override
   Widget build(BuildContext context) {
@@ -357,12 +349,11 @@ class HomeView extends StatelessWidget {
                     color: tacticalGreen,
                     borderRadius: BorderRadius.circular(8),
                     border:
-                        Border.all(color: const Color(0xff001e10), width: 2),
+                        Border.all(color: const Color(0xff000000), width: 2),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.manage_search,
-                          color: Color(0xffbff0ce), size: 38),
+                      Icon(Icons.manage_search, color: darkAccent, size: 38),
                       SizedBox(width: 14),
                       Expanded(
                         child: Text(
@@ -388,25 +379,7 @@ class HomeView extends StatelessWidget {
                     fontSize: 16),
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                      child: _shortcut(Icons.bookmark, 'Favoritos',
-                          '$favoriteCount salvas')),
-                  const SizedBox(width: 10),
-                  Expanded(
-                      child: _shortcut(Icons.checklist, 'Checklist', 'Roteiro',
-                          onTap: onChecklist)),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                      child: _shortcut(Icons.local_police, 'Medidas adm.',
-                          'Retenção / Remoção')),
-                ],
-              ),
+              _shortcut(Icons.bookmark, 'Favoritos', '$favoriteCount salvas'),
             ]),
           ),
         ),
@@ -738,31 +711,19 @@ class MoreView extends StatelessWidget {
   const MoreView(
       {required this.databaseVersion,
       required this.updating,
-      required this.checklist,
       required this.onUpdate,
-      required this.onChecklistItem,
       super.key});
   final String databaseVersion;
   final bool updating;
-  final Set<String> checklist;
   final VoidCallback onUpdate;
-  final ValueChanged<String> onChecklistItem;
-  static const items = [
-    'CNH/PPD/ACC apresentada e consultada',
-    'Documento do veículo conferido',
-    'Equipamentos obrigatórios verificados',
-    'Sinalização e local da abordagem seguros',
-    'Medidas administrativas avaliadas'
-  ];
   @override
   Widget build(BuildContext context) => Column(children: [
-        const TacticalHeader(
-            title: 'Mais', subtitle: 'Ferramentas operacionais'),
+        const TacticalHeader(title: 'Mais', subtitle: 'Configurações'),
         Expanded(
             child: ListView(padding: const EdgeInsets.all(16), children: [
           Card(
               child: ListTile(
-                  leading: const Icon(Icons.sync, color: tacticalGreen),
+                  leading: const Icon(Icons.sync, color: darkAccent),
                   title: const Text('Atualizar base CTB/MBFT',
                       style: TextStyle(fontWeight: FontWeight.w800)),
                   subtitle: Text(databaseVersion),
@@ -770,16 +731,10 @@ class MoreView extends StatelessWidget {
                       ? const CircularProgressIndicator()
                       : const Icon(Icons.chevron_right),
                   onTap: updating ? null : onUpdate)),
-          const SizedBox(height: 14),
-          const Text('CHECKLIST DE ABORDAGEM',
-              style: TextStyle(fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          ...items.map((item) => CheckboxListTile(
-              value: checklist.contains(item),
-              onChanged: (_) => onChecklistItem(item),
-              title: Text(item),
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero))
+          const SizedBox(height: 32),
+          const Center(
+              child: Text('Feito por Higor Brito',
+                  style: TextStyle(color: darkTextMuted, fontSize: 12)))
         ]))
       ]);
 }
@@ -812,6 +767,10 @@ class _FineDetailsDialogState extends State<FineDetailsDialog> {
           insetPadding: const EdgeInsets.all(12),
           titlePadding: const EdgeInsets.fromLTRB(20, 18, 12, 8),
           title: Row(children: [
+            IconButton(
+                tooltip: 'Fechar',
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close)),
             const Expanded(child: Text('Detalhes do enquadramento')),
             IconButton(
                 onPressed: () {

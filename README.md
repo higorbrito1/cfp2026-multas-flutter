@@ -1,4 +1,4 @@
-# Consulta CTB/MBFT CFP 26/27
+# Consulta CTB/MBFT
 
 Aplicativo Flutter offline para consulta rápida de infrações do CTB e MBFT.
 
@@ -8,8 +8,8 @@ Aplicativo Flutter offline para consulta rápida de infrações do CTB e MBFT.
 - Detalhamento completo com seções retráteis.
 - Favoritos persistentes com indicação visual e confirmação ao salvar.
 - Atualização da base quando houver internet, mantendo uso offline.
-- Checklist operacional de abordagem.
 - Interface em modo escuro para uso em campo.
+- Crédito discreto: Feito por Higor Brito.
 
 ## Getting Started
 
