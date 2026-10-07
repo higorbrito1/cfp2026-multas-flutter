@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "baseVersion": "mbft-2022",
   "baseUpdatedAt": "2026-09-27",
-  "lastOfficialCheck": "2026-10-06",
+  "lastOfficialCheck": "2026-10-07",
   "officialSources": [
     {
       "name": "Resoluções do CONTRAN",
       "kind": "Resoluções em vigor e alterações",
       "url": "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-Senatran/resolucoes-contran",
       "status": "ok",
-      "documentCount": 1376,
+      "documentCount": 1377,
       "documents": [
         "http://antigo.infraestrutura.gov.br/images/Resolucoes/resolucao7202017.pdf",
         "http://antigo.infraestrutura.gov.br/images/Resolucoes/resolucao7442018.pdf",
@@ -452,6 +452,7 @@
         "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/anexo_i_mbft.zip",
         "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/anexo_ii_mbft.zip",
         "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/anexos_resolucao_667_17_atualizado.zip",
+        "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/circular022026.pdf",
         "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/cons371.pdf",
         "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/copy_of_Resolucao7972020.pdf",
         "https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/copy_of_Resolucao8182021.pdf",
